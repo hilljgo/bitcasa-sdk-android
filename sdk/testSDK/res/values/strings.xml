@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">testSDK</string>
+    <string name="action_settings">Settings</string>
+    <string name="user_name">Email</string>
+	<string name="password">Password</string>
+	<string name="sign_in_email_hint">Email</string>
+    <string name="sign_in_password_hint">Password</string>
+    <string name="connect">Connect</string>
+    <string name="delete">Delete</string>
+    <string name="rename">Rename</string>
+    <string name="move">Move</string>
+    <string name="copy">Copy</string>
+    <string name="download">Download</string>
+    <string name="upload">Upload</string>
+    <string name="getfolder">GetFolder</string>
+    <string name="addfolder">AddFolder</string>
+    <string name="cancel">Cancel</string>
+    <string name="tofile">Second file: </string>
+    <string name="currentfile">Current: </string>
+</resources>

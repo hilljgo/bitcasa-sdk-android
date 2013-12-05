@@ -1,0 +1,130 @@
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".MainActivity" >
+	
+    <LinearLayout android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        
+        <Button
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+        android:text="@string/connect"
+        android:id="@+id/sign_in_connect" />
+        
+        <Button
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+        android:text="@string/delete"
+        android:id="@+id/delete" />
+        
+        <Button
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+        android:text="@string/rename"
+        android:id="@+id/rename" />
+        
+        <Button
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+        android:text="@string/copy"
+        android:id="@+id/copy" />
+       
+    </LinearLayout>
+    <LinearLayout android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+         
+        <Button
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+        android:text="@string/move"
+        android:id="@+id/move" />
+        
+        <Button
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+        android:text="@string/download"
+        android:id="@+id/download" />
+        
+        <Button
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+        android:text="@string/upload"
+        android:id="@+id/upload" />
+        
+        <Button
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+        android:text="@string/getfolder"
+        android:id="@+id/getfolder" />
+    </LinearLayout>
+	
+	<LinearLayout android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        
+	    <Button
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+        android:text="@string/addfolder"
+        android:id="@+id/addfolder" />
+	    
+	    <EditText android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:id="@+id/string"/>
+	    
+    </LinearLayout>
+    
+	<LinearLayout android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        
+	    <Button
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+        android:text="@string/cancel"
+        android:id="@+id/cancel" />
+	    
+	    <TextView android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="@string/currentfile"/>
+	    
+	    <TextView android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:id="@+id/currentfile"/>
+	    
+    </LinearLayout>
+    
+	<LinearLayout android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        
+	    <TextView android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="@string/tofile"/>
+	    <TextView android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:id="@+id/tofile"/>
+	    
+    </LinearLayout>
+    
+	<ListView android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:id="@+id/result"
+	    ></ListView>
+	
+	<TextView android:id="@+id/file_list_empty_view"
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:gravity="center"></TextView>
+
+</LinearLayout>
