@@ -368,7 +368,7 @@ public class MainActivity extends Activity {
 		protected ArrayList<FileMetaData> doInBackground(Void... params) {
 			try {
 				if (mBitcasaClient.isLinked()) {
-						ArrayList<FileMetaData> allfolders = mBitcasaClient.getList(mFolder, Depth.CURRENT_CHILDREN, 5, Category.PHOTOS);
+						ArrayList<FileMetaData> allfolders = mBitcasaClient.getList(mFolder, null, 0, null);
 					return allfolders;
 				}
 				

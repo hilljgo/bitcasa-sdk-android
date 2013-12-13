@@ -190,6 +190,13 @@ public class BitcasaClient {
 		
 		String method = BitcasaRESTConstants.FORESLASH;
 		
+		if (toFolder == null) {			
+    		if (mBitcasaInfiniteDrive == null)
+    			getList(null, null, 0, null);
+    		
+    		toFolder = mBitcasaInfiniteDrive;	
+		}
+		
 		if (toFolder != null && toFolder.path != null)
 			method = toFolder.path;
 		
