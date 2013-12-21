@@ -17,6 +17,7 @@ import java.util.ArrayList;
 
 import com.bitcasa.client.HTTP.BitcasaRESTConstants;
 import com.bitcasa.client.HTTP.BitcasaRESTConstants.FileType;
+import com.bitcasa.client.datamodel.AccountInfo;
 import com.bitcasa.client.datamodel.BitcasaError;
 import com.bitcasa.client.datamodel.FileMetaData;
 import com.bitcasa.client.exception.BitcasaException;
@@ -54,12 +55,20 @@ public class BitcasaParseJSON {
 	private static final String TAG_ORIGIN_DEVICE = "origin_device";
 	private static final String TAG_ORIGIN_DEVICE_ID = "origin_device_id";
 	private static final String TAG_NUM_OBJECTS = "num_objects";
+	private static final String TAG_STORAGE = "storage";
+	private static final String TAG_STORAGE_TOTAL = "total";
+	private static final String TAG_STORAGE_USED = "used";
+	private static final String TAG_STORAGE_DISPLAY = "display";
+	
+	private static final String TAG_REFERRAL_LINK = "referral_link";
+	private static final String TAG_DISPLAY_NAME = "display_name";
 
 	public String mAccessToken;
 	public BitcasaError mBitcasaError = new BitcasaError();
 	public ArrayList<FileMetaData> mfiles;
 	public boolean mbContainsMirrored = false;
 	public int mNumDeleted = 0;
+	public AccountInfo mAccountInfo;
 	
 	public BitcasaParseJSON() {
 	}
@@ -127,6 +136,41 @@ public class BitcasaParseJSON {
 			}
 			else if (name.equals(TAG_ERROR_MESSAGE)) {
 				mBitcasaError.setMessage(reader.nextString());
+			}
+			else if (name.equals(TAG_STORAGE)) {
+				if (mAccountInfo == null)
+					mAccountInfo = new AccountInfo();
+				reader.beginObject();
+				while (reader.hasNext()) {
+					String storageName = reader.nextName();
+					if (storageName.equals(TAG_STORAGE_TOTAL))
+						mAccountInfo.setStorage_total(reader.nextLong());
+					else if (storageName.equals(TAG_STORAGE_DISPLAY))
+						mAccountInfo.setStorage_display(reader.nextString());
+					else if (storageName.equals(TAG_STORAGE_USED))
+						mAccountInfo.setStorage_used(reader.nextLong());
+					else
+						reader.skipValue();
+				}
+				reader.endObject();
+			}
+			else if (name.equals(TAG_DISPLAY_NAME)) {
+				if (mAccountInfo == null)
+					mAccountInfo = new AccountInfo();
+				
+				mAccountInfo.setDisplay_name(reader.nextString());
+			}
+			else if (name.equals(TAG_ID)) {
+				if (mAccountInfo == null)
+					mAccountInfo = new AccountInfo();
+				
+				mAccountInfo.setId(reader.nextString());
+			}
+			else if (name.equals(TAG_REFERRAL_LINK)) {
+				if (mAccountInfo == null)
+					mAccountInfo = new AccountInfo();
+				
+				mAccountInfo.setReferralLink(reader.nextString());
 			}
 			else
 				reader.skipValue();

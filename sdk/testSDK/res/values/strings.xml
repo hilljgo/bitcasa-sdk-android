@@ -8,15 +8,17 @@
 	<string name="sign_in_email_hint">Email</string>
     <string name="sign_in_password_hint">Password</string>
     <string name="connect">Connect</string>
-    <string name="delete">Delete</string>
-    <string name="rename">Rename</string>
+    <string name="delete">D</string>
+    <string name="rename">RN</string>
     <string name="move">Move</string>
-    <string name="copy">Copy</string>
+    <string name="copy">C</string>
     <string name="download">Download</string>
     <string name="upload">Upload</string>
-    <string name="getfolder">GetFolder</string>
-    <string name="addfolder">AddFolder</string>
+    <string name="getfolder">Folder</string>
+    <string name="addfolder">Add</string>
     <string name="cancel">Cancel</string>
     <string name="tofile">Second file: </string>
     <string name="currentfile">Current: </string>
+    <string name="native_connect">Native</string>
+    <string name="account">Ac</string>
 </resources>

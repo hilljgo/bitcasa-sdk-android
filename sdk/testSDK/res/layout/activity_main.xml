@@ -37,6 +37,12 @@
 	    android:layout_height="wrap_content"
         android:text="@string/copy"
         android:id="@+id/copy" />
+        
+        <Button
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+        android:text="@string/account"
+        android:id="@+id/account" />
        
     </LinearLayout>
     <LinearLayout android:layout_width="fill_parent"
@@ -88,6 +94,12 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
         
+	    <Button
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+        android:text="@string/native_connect"
+        android:id="@+id/native_connect" />
+	    
 	    <Button
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"

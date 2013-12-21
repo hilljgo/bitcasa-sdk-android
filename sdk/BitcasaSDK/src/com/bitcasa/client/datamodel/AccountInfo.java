@@ -12,8 +12,73 @@ package com.bitcasa.client.datamodel;
 
 public class AccountInfo {
 
+	private String display_name;
+	private String referral_link;
+	private String id;
+	private String email;
+	private long storage_total;
+	private long storage_used;
+	private String storage_display;
 	
 	public AccountInfo(){
 		
 	}
+
+	public String getDisplay_name() {
+		return display_name;
+	}
+
+	public void setDisplay_name(String displayname) {
+		this.display_name = displayname;
+	}
+
+	public String getReferralLink() {
+		return referral_link;
+	}
+
+	public void setReferralLink(String referralLink) {
+		this.referral_link = referralLink;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public long getStorage_total() {
+		return storage_total;
+	}
+
+	public void setStorage_total(long storage_total) {
+		this.storage_total = storage_total;
+	}
+
+	public long getStorage_used() {
+		return storage_used;
+	}
+
+	public void setStorage_used(long storage_used) {
+		this.storage_used = storage_used;
+	}
+
+	public String getStorage_display() {
+		return storage_display;
+	}
+
+	public void setStorage_display(String storage_display) {
+		this.storage_display = storage_display;
+	}
+	
+	
 }

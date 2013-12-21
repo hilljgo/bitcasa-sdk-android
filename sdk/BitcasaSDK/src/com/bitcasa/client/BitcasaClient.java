@@ -39,6 +39,7 @@ import com.bitcasa.client.HTTP.BitcasaRESTConstants.FileOperation;
 import com.bitcasa.client.HTTP.BitcasaRESTConstants.FileType;
 import com.bitcasa.client.ParseJSON.BitcasaParseJSON;
 import com.bitcasa.client.ProgressListener.ProgressAction;
+import com.bitcasa.client.datamodel.AccountInfo;
 import com.bitcasa.client.datamodel.Authentication;
 import com.bitcasa.client.datamodel.BitcasaError;
 import com.bitcasa.client.datamodel.FileMetaData;
@@ -408,15 +409,15 @@ public class BitcasaClient {
     
     /**
      * Download a file from Bitcasa Infinite Drive
-     * @param file
-     * @param range
-     * @param indirect
-     * @param filenameToBe
-     * @param listener
+     * @param file - Bitcasa FileMetaData with valid bitcasa file path and file name
+     * @param range - Any valid content range. No less than 0, no greater than the filesize.
+     * @param indirect - Boolean. Default 0. When true, responds with a one time url
+     * @param localDestination - device file location with file path and name
+     * @param listener - to listen to the file download progress
      * @throws BitcasaException
      * @throws IOException
      */
-    public void downloadFile(FileMetaData file, long range, boolean indirect, String filenameToBe, String localDestination, ProgressListener listener) throws BitcasaException, IOException {
+    public void downloadFile(FileMetaData file, long range, boolean indirect, String localDestination, ProgressListener listener) throws BitcasaException, InterruptedException, IOException {
     	if (localDestination == null)
     		throw new BitcasaFileException("Invalid local destination.");
     	
@@ -441,7 +442,7 @@ public class BitcasaClient {
 		if (file.id != null && file.id.length() > 0)
 			method.append(BitcasaRESTConstants.FORESLASH).append(file.id);
 		
-		method.append(BitcasaRESTConstants.FORESLASH).append(filenameToBe);
+		method.append(BitcasaRESTConstants.FORESLASH).append(file.name);
 		
 		StringBuilder params = new StringBuilder();    	
 		params.append(BitcasaRESTConstants.PARAM_ACCESS_TOKEN).append("=")
@@ -991,6 +992,78 @@ public class BitcasaClient {
 		else
 			return null;
     }
+    
+    public AccountInfo getAccountInfo() throws IOException, BitcasaException {
+    	
+    	AccountInfo ai = null;
+		StringBuilder params = new StringBuilder();    	
+		params.append(BitcasaRESTConstants.PARAM_ACCESS_TOKEN).append("=")
+		.append(mAuthentication.getAccess_token());
+		
+		String url = mBitcasaRESTUtility.getRequestUrl(BitcasaRESTConstants.METHOD_USER, BitcasaRESTConstants.METHOD_PROFILE, params);
+					
+		
+		Log.d(TAG, "getAccountInfo URL: " + url);
+		HttpsURLConnection connection = null;
+		InputStream is = null;
+		JsonReader reader = null;
+		BitcasaParseJSON parser = null;
+		
+		try {
+			connection = (HttpsURLConnection) new URL(url)
+					.openConnection();
+			connection.setRequestMethod(BitcasaRESTConstants.REQUEST_METHOD_GET);
+			
+			// read response code
+			final int responseCode = connection.getResponseCode();
+			Log.d(TAG, "getList response The response code is: "
+					+ responseCode);
+			
+			if (responseCode == HttpsURLConnection.HTTP_OK) {
+				is = connection.getInputStream();
+			} 
+			else
+				is = connection.getErrorStream();
+			
+			parser = new BitcasaParseJSON();
+			if (parser.readJsonStream(is))
+				ai = parser.mAccountInfo;
+			else if (parser.mBitcasaError.getCode() > 0)
+				throw new BitcasaServerException(parser.mBitcasaError);	
+			
+			if (responseCode == HttpsURLConnection.HTTP_OK) {
+				//do nothing
+			}
+			else if (responseCode == HttpsURLConnection.HTTP_UNAUTHORIZED) {
+				throw new BitcasaAuthenticationException(1020, "Authorization code not recognized");
+			} 
+			else
+				throw new BitcasaRequestErrorException(Integer.toString(responseCode)); 
+			
+		} catch (IOException ioe) {
+			if (ioe.getMessage().contains("authentication challenge"))
+				throw new BitcasaAuthenticationException(1020, "Authorization code not recognized");
+			else if (ioe != null)
+				ioe.printStackTrace();
+		} catch (Exception e) {
+			if (e != null)
+				e.printStackTrace();
+		} finally {
+			if (reader != null) {
+				reader.close();
+			}
+			
+			if (is != null) {
+				is.close();
+			}
+			
+		}
+		
+		if (connection != null)
+			connection.disconnect();
+		
+		return ai;
+	}
     
     /**
      * Set Bicasa client Authorization Code

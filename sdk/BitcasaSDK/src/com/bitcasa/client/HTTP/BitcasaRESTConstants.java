@@ -44,6 +44,8 @@ public class BitcasaRESTConstants {
 	public static final String METHOD_TOKEN = "/token";
 	public static final String METHOD_FOLDERS = "/folders";
 	public static final String METHOD_FILES = "/files";
+	public static final String METHOD_USER = "/user";
+	public static final String METHOD_PROFILE = "/profile";
 	
 	public static final String PARAM_CLIENT_ID = "client_id";
 	public static final String PARAM_REDIRECT = "redirect";

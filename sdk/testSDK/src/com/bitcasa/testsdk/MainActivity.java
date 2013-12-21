@@ -3,27 +3,40 @@ package com.bitcasa.testsdk;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import com.bitcasa.client.BitcasaClient;
+import com.bitcasa.client.BitcasaConstants;
+import com.bitcasa.client.BitcasaConstants.AllowAccessResult;
 import com.bitcasa.client.HTTP.BitcasaRESTConstants.Category;
 import com.bitcasa.client.HTTP.BitcasaRESTConstants.Depth;
 import com.bitcasa.client.HTTP.BitcasaRESTConstants.FileType;
 import com.bitcasa.client.HTTP.BitcasaRESTConstants.CollisionResolutions;
 import com.bitcasa.client.HTTP.BitcasaRESTConstants.FileOperation;
 import com.bitcasa.client.ProgressListener;
+import com.bitcasa.client.datamodel.AccountInfo;
 import com.bitcasa.client.datamodel.FileMetaData;
 import com.bitcasa.client.exception.BitcasaAuthenticationException;
 import com.bitcasa.client.exception.BitcasaException;
 import com.bitcasa.client.exception.BitcasaRequestErrorException;
 
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Parcelable;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
+import android.content.pm.Signature;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -37,6 +50,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -45,14 +59,18 @@ public class MainActivity extends Activity {
 	final static private String CLIENT_ID = "12345678";
 	final static private String CLIENT_SECRET = "1234567890abcdefghijklmnopqrstuv";
 	
+	public static final int REQUEST_BITCASA_PERMIT				= 1111;
+	
 	private BitcasaClient mBitcasaClient;
 	ListView resultlist;
 	ResultListAdapter m_ResultAdaper;
+	ResultAccountAdapter m_AccountAdapter;
 	Button connect;
 	Button delete;
 	Button copy;
 	Button move;
 	Button rename;
+	Button account;
 	TextView m_EmptyText;
 	Button download;
 	Button upload;
@@ -62,11 +80,14 @@ public class MainActivity extends Activity {
 	Button cancel;
 	TextView currentfile;
 	TextView tofile;
+	Button native_connect;
 	
 	ArrayList<FileMetaData> mCurrentList = null;
 	FileMetaData mCurrentFile = null;
 	FileMetaData mToFolder = null;
 	String mAuthorization_code = null;
+	AccountInfo mAccount = null;
+	
 	BitcasaUploadTask uploadTask = null;
 	BitcasaDownloadTask downloadTask = null;
 	
@@ -83,6 +104,7 @@ public class MainActivity extends Activity {
 		copy = (Button)findViewById(R.id.copy);
 		move = (Button)findViewById(R.id.move);
 		rename = (Button)findViewById(R.id.rename);
+		account = (Button)findViewById(R.id.account);
 		download = (Button)findViewById(R.id.download);
 		upload = (Button)findViewById(R.id.upload);
 		getfolder = (Button)findViewById(R.id.getfolder);
@@ -91,6 +113,7 @@ public class MainActivity extends Activity {
 		cancel = (Button)findViewById(R.id.cancel);
 		currentfile = (TextView)findViewById(R.id.currentfile);
 		tofile = (TextView)findViewById(R.id.tofile);
+		native_connect = (Button)findViewById(R.id.native_connect);
 		
 		resultlist = (ListView)findViewById(R.id.result);
 		m_EmptyText = (TextView)findViewById(R.id.file_list_empty_view);
@@ -191,6 +214,16 @@ public class MainActivity extends Activity {
 			}
 		});
 		
+		account.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				BitcasaAccountTask task = new BitcasaAccountTask(mBitcasaClient);
+				task.execute();
+				
+			}
+		});
+		
 		download.setOnClickListener(new OnClickListener() {
 					
 					@SuppressLint("NewApi")
@@ -238,6 +271,47 @@ public class MainActivity extends Activity {
 			}
 		});
 		
+		native_connect.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				
+				//check if the Bitcasa Android app is installed in the device
+				int bitcasaVersion = GetBitcasaAppInstalledVersionCode();
+				if (bitcasaVersion == -1) {
+					Toast.makeText(MainActivity.this, "Please install latest Bitcasa App.", Toast.LENGTH_LONG).show();
+					return;
+				}
+				else if (bitcasaVersion < 29) {
+					Toast.makeText(MainActivity.this, "Please upgrade to latest Bitcasa App.", Toast.LENGTH_LONG).show();
+					return;
+				}
+				
+				/** call intent to launch Bitcasa native app to get authorization code
+				 *	call the package name and class name have been defined in BitcasaConstants
+				 * send action as Intent.ACTION_SEND
+				 * putExtra of BitcasaConstants.EXTRA_CLIENT_ID as the key, CLIENT_ID is your client id
+				 * To start activity with result
+				 */
+				Intent LaunchIntent = new Intent();
+				LaunchIntent.setClassName(BitcasaConstants.BITCASA_PACKAGE_NAME,
+						BitcasaConstants.BITCASA_CLASS_NAME);
+				
+				LaunchIntent.setType("text/plain");
+				LaunchIntent.setAction(Intent.ACTION_SEND);
+				LaunchIntent.putExtra(BitcasaConstants.EXTRA_CLIENT_ID, CLIENT_ID);
+				
+				
+				try {
+					startActivityForResult(LaunchIntent, REQUEST_BITCASA_PERMIT);
+		        } catch (ActivityNotFoundException e) {
+		            Log.d(TAG, "activity not found");
+		        }
+				
+			}
+			
+		});
+		
 		cancel.setOnClickListener(new OnClickListener() {
 			
 			@SuppressLint("NewApi")
@@ -273,7 +347,7 @@ public class MainActivity extends Activity {
 		
 	}
 	
-	@SuppressLint("NewApi")
+	@SuppressLint({ "NewApi", "ShowToast" })
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == BitcasaLoginActivity.REQUEST_CODE_BITCASA_AUTH && resultCode == BitcasaLoginActivity.RESULT_CODE_BITCASA_AUTH && data != null) {
 			mAuthorization_code = data.getStringExtra(BitcasaLoginActivity.EXTRA_BITCASA_AUTH_CODE);
@@ -281,6 +355,36 @@ public class MainActivity extends Activity {
 			BitcasaActivityTask task = new BitcasaActivityTask(mBitcasaClient, mAuthorization_code);
 			task.execute();
 			
+		}else if (requestCode == REQUEST_BITCASA_PERMIT) {
+			/**
+			 * this the result of getting authorization code from Bitcasa native Android app
+			 * only if BitcasaConstants.EXTRA_ALLOW_ACCESS_RESULT is resutlStatus.equals(AllowAccessResult.RESULT_ALLOWED, then the authorization code will come back
+			 * you will need to get authorization code from the data extras with key BitcasaConstants.EXTRA_AUTHORIZATION_CODE
+			 * 
+			 * once you get an authorization code back, you will need to make call(along with client secret) to exchange it back with accessToken
+			 * you've logged in as you get accessToken back.
+			 */
+			if (resultCode == Activity.RESULT_OK && data != null) {
+				if (data.getExtras() != null && data.getExtras().containsKey(BitcasaConstants.EXTRA_ALLOW_ACCESS_RESULT)) {
+					String resutlStatus = data.getExtras().getString(BitcasaConstants.EXTRA_ALLOW_ACCESS_RESULT);
+					if (resutlStatus.equals(AllowAccessResult.RESULT_ERROR_SESSION_EXPIRED.toString())) {
+						Toast.makeText(MainActivity.this, AllowAccessResult.RESULT_ERROR_SESSION_EXPIRED.toString(), Toast.LENGTH_LONG).show();
+					}else if (resutlStatus.equals(AllowAccessResult.RESULT_ERROR_REQUEST_ERROR.toString())) {
+						Toast.makeText(MainActivity.this, AllowAccessResult.RESULT_ERROR_REQUEST_ERROR.toString(), Toast.LENGTH_LONG).show();
+					}else if (resutlStatus.equals(AllowAccessResult.RESULT_ERROR.toString())) {
+						Toast.makeText(MainActivity.this, AllowAccessResult.RESULT_ERROR.toString(), Toast.LENGTH_LONG).show();
+					}
+					else if (resutlStatus.equals(AllowAccessResult.RESULT_CANCELLED.toString())) {
+						Toast.makeText(MainActivity.this, AllowAccessResult.RESULT_CANCELLED.toString(), Toast.LENGTH_LONG).show();
+					}
+					else if (resutlStatus.equals(AllowAccessResult.RESULT_ALLOWED.toString())) {
+						mAuthorization_code = data.getExtras().getString(BitcasaConstants.EXTRA_AUTHORIZATION_CODE);
+						mBitcasaClient.setAuthorizationCode(mAuthorization_code);			
+						BitcasaActivityTask task = new BitcasaActivityTask(mBitcasaClient, mAuthorization_code);
+						task.execute();
+					}
+				}
+			}
 		}
 	}
 
@@ -289,6 +393,19 @@ public class MainActivity extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
+	}
+	
+	public int GetBitcasaAppInstalledVersionCode() {
+	    List<PackageInfo> packs = getPackageManager().getInstalledPackages(0);
+	    for(int i=0;i<packs.size();i++) {
+	        PackageInfo p = packs.get(i);
+	        if (p.versionName == null || !p.packageName.equals(BitcasaConstants.BITCASA_PACKAGE_NAME)) {
+	            continue ;
+	        }
+	        
+	        return p.versionCode;
+	    }
+	    return -1; 
 	}
 	
 	
@@ -483,7 +600,7 @@ public class MainActivity extends Activity {
 			try {
 					if (mBitcasaClient.isLinked()) {
 						File tempDownloadFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), mFileToBeDownloaded.name);
-						mBitcasaClient.downloadFile(mFileToBeDownloaded, 0, false, mFileToBeDownloaded.name, tempDownloadFile.getPath(), mListener);
+						mBitcasaClient.downloadFile(mFileToBeDownloaded, 0, false, tempDownloadFile.getPath(), mListener);
 					}
 					
 			} catch (IOException e) {
@@ -495,6 +612,9 @@ public class MainActivity extends Activity {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (BitcasaException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} finally {
@@ -593,6 +713,95 @@ public class MainActivity extends Activity {
 		}
 	}
 	
+	protected class ResultAccountAdapter extends ArrayAdapter<AccountInfo> {
+		private ArrayList<AccountInfo> mAccounts;
+		
+		public ResultAccountAdapter(Context context, int textViewResourceId, ArrayList<AccountInfo> account) {
+			super(context, textViewResourceId, account);
+			mAccounts = account;
+		}
+		
+		public View getView(final int position, View convertView, ViewGroup parent) {
+			View view = convertView;
+			if (view == null) {
+				LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+				view = inflater.inflate(R.layout.list_result, null);
+			}
+			TextView storageTotal = (TextView)view.findViewById(R.id.name);
+			TextView storageUsed = (TextView)view.findViewById(R.id.album);
+			TextView storageDisplay = (TextView)view.findViewById(R.id.category);
+			TextView displayName = (TextView)view.findViewById(R.id.count);
+			TextView referralLink = (TextView)view.findViewById(R.id.deleted);
+			TextView accountId = (TextView)view.findViewById(R.id.manifest_name);
+						
+			AccountInfo ai = mAccounts.get(position);
+			
+			if (ai != null) {
+				storageTotal.setText("storageTotal: " + ai.getStorage_total());
+				storageUsed.setText("storageUsed: " + ai.getStorage_used());
+				storageDisplay.setText("storageDisplay: "+ ai.getStorage_display());
+				displayName.setText("displayName: " + ai.getDisplay_name());
+				referralLink.setText("referralLink: " + ai.getReferralLink());
+				accountId.setText("accountId: " + ai.getId());
+			}
+			
+			view.setTag(ai);
+			
+			return view;
+		}
+	}
+	
+	private class BitcasaAccountTask extends AsyncTask<Void, Void, AccountInfo> {
+	    private BitcasaClient mBitcasaClient;
+
+	    BitcasaAccountTask(BitcasaClient bitcasaClient) {
+			this.mBitcasaClient = bitcasaClient;
+		}
+
+		@Override
+		protected void onPostExecute(AccountInfo result) {
+			
+			if (result == null)
+				return;
+			
+			mAccount = result;
+			ArrayList<AccountInfo> aiList = null;
+			if (mAccount != null) {
+				aiList = new ArrayList<AccountInfo>();
+				aiList.add(mAccount);
+			}
+			
+			m_AccountAdapter = new ResultAccountAdapter(MainActivity.this, R.layout.list_result, aiList);
+			if (m_AccountAdapter != null)
+				resultlist.setAdapter(m_AccountAdapter);
+		}
+
+		@Override
+		protected AccountInfo doInBackground(Void... params) {
+			try {
+				if (mBitcasaClient.isLinked()) {
+					AccountInfo account = mBitcasaClient.getAccountInfo();
+					return account;
+				}				
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (BitcasaRequestErrorException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (BitcasaAuthenticationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (BitcasaException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return null;
+		}
+
+	 }
+	
 	private ProgressListener mProgressListener = new ProgressListener() {
 
 		@Override
@@ -633,5 +842,6 @@ public class MainActivity extends Activity {
 		}
 		
 	};
+	
 
 }
