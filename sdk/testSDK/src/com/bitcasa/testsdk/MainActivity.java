@@ -10,7 +10,6 @@ import com.bitcasa.client.BitcasaConstants;
 import com.bitcasa.client.BitcasaConstants.AllowAccessResult;
 import com.bitcasa.client.HTTP.BitcasaRESTConstants.Category;
 import com.bitcasa.client.HTTP.BitcasaRESTConstants.Depth;
-import com.bitcasa.client.HTTP.BitcasaRESTConstants.FileType;
 import com.bitcasa.client.HTTP.BitcasaRESTConstants.CollisionResolutions;
 import com.bitcasa.client.HTTP.BitcasaRESTConstants.FileOperation;
 import com.bitcasa.client.ProgressListener;
@@ -20,23 +19,16 @@ import com.bitcasa.client.exception.BitcasaAuthenticationException;
 import com.bitcasa.client.exception.BitcasaException;
 import com.bitcasa.client.exception.BitcasaRequestErrorException;
 
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Parcelable;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.content.pm.ResolveInfo;
-import android.content.pm.Signature;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -253,7 +245,21 @@ public class MainActivity extends Activity {
 			@SuppressLint("NewApi")
 			@Override
 			public void onClick(View v) {
-				BitcasaFolderTask task = new BitcasaFolderTask(mBitcasaClient, mCurrentFile);
+				
+				String userInput = inputstring.getText().toString();
+				
+				//depth:latest:category
+				String depth = null;
+				String latest = null;
+				String category = null;
+				if (userInput.contains(":")) {
+					String[] input = userInput.split(":");
+					depth = input[0];
+					latest = input[1];
+					category = input[2];
+				}
+				
+				BitcasaFolderTask task = new BitcasaFolderTask(mBitcasaClient, mCurrentFile, depth, latest, category);
 				task.execute();
 			}
 		});
@@ -462,11 +468,16 @@ public class MainActivity extends Activity {
 	private class BitcasaFolderTask extends AsyncTask<Void, Void, ArrayList<FileMetaData>> {
 	    private BitcasaClient mBitcasaClient;
 	    private FileMetaData mFolder;
-	    
+	    private String depth;
+	    private String latest;
+	    private String category;
 		
-	    BitcasaFolderTask(BitcasaClient bitcasaClient, FileMetaData folder) {
+	    BitcasaFolderTask(BitcasaClient bitcasaClient, FileMetaData folder, String depth, String latest, String category) {
 			this.mFolder = folder;
 			this.mBitcasaClient = bitcasaClient;
+			this.depth = depth;
+			this.latest = latest;
+			this.category = category;
 		}
 
 		@Override
@@ -485,7 +496,48 @@ public class MainActivity extends Activity {
 		protected ArrayList<FileMetaData> doInBackground(Void... params) {
 			try {
 				if (mBitcasaClient.isLinked()) {
-						ArrayList<FileMetaData> allfolders = mBitcasaClient.getList(mFolder, null, 0, null);
+					Depth d = null;
+					if (depth != null) {
+						if (depth.equals("0"))
+							d = Depth.INFINITE;
+						else if (depth.equals("1"))
+							d = Depth.CURRENT_CHILDREN;
+					}
+					
+					int l = latest==null?0:Integer.parseInt(latest);
+					
+					Category ca = null;
+					if (category != null) {
+						int c = Integer.parseInt(category);
+						switch(c) {
+						case 0:
+							ca = Category.MUSIC_ARTISTS;
+							break;
+						case 1:
+							ca = Category.MUSIC_ALBUMS;
+							break;
+						case 2:
+							ca = Category.MUSIC_TRACKS;
+							break;
+						case 3:
+							ca = Category.PHOTO_ALBUMS;
+							break;
+						case 4:
+							ca = Category.PHOTOS;
+							break;
+						case 5:
+							ca = Category.DOCUMENTS;
+							break;
+						case 6:
+							ca = Category.VIDEOS;
+							break;
+						case 7:
+							ca = Category.EVERYTHING;
+							break;
+						}
+					}
+					
+					ArrayList<FileMetaData> allfolders = mBitcasaClient.getList(mFolder, d, l, ca);
 					return allfolders;
 				}
 				
@@ -672,39 +724,13 @@ public class MainActivity extends Activity {
 				view = inflater.inflate(R.layout.list_result, null);
 			}
 			TextView name = (TextView)view.findViewById(R.id.name);
-			TextView album = (TextView)view.findViewById(R.id.album);
-			TextView category = (TextView)view.findViewById(R.id.category);
 			TextView count = (TextView)view.findViewById(R.id.count);
-			TextView deleted = (TextView)view.findViewById(R.id.deleted);
-			TextView manifest_name = (TextView)view.findViewById(R.id.manifest_name);
-			TextView mirrored = (TextView)view.findViewById(R.id.mirrored);
-			TextView mount_point = (TextView)view.findViewById(R.id.mount_point);
-			TextView mtime = (TextView)view.findViewById(R.id.mtime);
-			TextView origin_device = (TextView)view.findViewById(R.id.origin_device);
-			TextView path = (TextView)view.findViewById(R.id.path);
-			TextView type = (TextView)view.findViewById(R.id.type);
-			TextView origin_device_id = (TextView)view.findViewById(R.id.origin_device_id);
-			TextView sync_type = (TextView)view.findViewById(R.id.sync_type);
-			TextView size = (TextView)view.findViewById(R.id.size);
-			
+
 			FileMetaData f = mFiles.get(position);
 			
 			if (f != null) {
-				name.setText("name: " + f.name);
-				album.setText("album: " + f.album);
-				category.setText("category: "+ f.category);
+				name.setText("file: " + f.toString());
 				count.setText("count: " + Integer.toString(position));
-				deleted.setText("deleted: " + Boolean.toString(f.deleted));
-				manifest_name.setText("manifest_name: " + f.manifest_name);
-				mirrored.setText("mirrored: " + Boolean.toString(f.mirrored));
-				mount_point.setText("mount_point: " + f.mount_point);
-				mtime.setText("mtime: " + Long.toString(f.mtime));
-				origin_device.setText("origin_device: " + f.origin_device);
-				origin_device_id.setText("origin_device_id: " + f.origin_device_id);
-				path.setText("path: " + f.path);
-				type.setText("type: " + Integer.toString((f.type==FileType.BITCASA_TYPE_FILE?0:1)));
-				sync_type.setText("sync_type: " + f.sync_type);
-				size.setText("size: " + f.size);
 			}
 			
 			view.setTag(f);
@@ -728,21 +754,11 @@ public class MainActivity extends Activity {
 				view = inflater.inflate(R.layout.list_result, null);
 			}
 			TextView storageTotal = (TextView)view.findViewById(R.id.name);
-			TextView storageUsed = (TextView)view.findViewById(R.id.album);
-			TextView storageDisplay = (TextView)view.findViewById(R.id.category);
-			TextView displayName = (TextView)view.findViewById(R.id.count);
-			TextView referralLink = (TextView)view.findViewById(R.id.deleted);
-			TextView accountId = (TextView)view.findViewById(R.id.manifest_name);
-						
+
 			AccountInfo ai = mAccounts.get(position);
 			
 			if (ai != null) {
-				storageTotal.setText("storageTotal: " + ai.getStorage_total());
-				storageUsed.setText("storageUsed: " + ai.getStorage_used());
-				storageDisplay.setText("storageDisplay: "+ ai.getStorage_display());
-				displayName.setText("displayName: " + ai.getDisplay_name());
-				referralLink.setText("referralLink: " + ai.getReferralLink());
-				accountId.setText("accountId: " + ai.getId());
+				storageTotal.setText("account: " + ai.toString());
 			}
 			
 			view.setTag(ai);

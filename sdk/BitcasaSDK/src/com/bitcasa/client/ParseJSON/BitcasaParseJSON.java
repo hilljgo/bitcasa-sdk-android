@@ -59,9 +59,13 @@ public class BitcasaParseJSON {
 	private static final String TAG_STORAGE_TOTAL = "total";
 	private static final String TAG_STORAGE_USED = "used";
 	private static final String TAG_STORAGE_DISPLAY = "display";
-	
 	private static final String TAG_REFERRAL_LINK = "referral_link";
 	private static final String TAG_DISPLAY_NAME = "display_name";
+	private static final String TAG_CTIME = "ctime";
+	private static final String TAG_BIRTH_TIME = "birth_time";
+	private static final String TAG_ARTIST = "artist";
+	private static final String TAG_NMTIME = "n_mtime";
+	private static final String TAG_ALBUM_ART = "album_art";
 
 	public String mAccessToken;
 	public BitcasaError mBitcasaError = new BitcasaError();
@@ -244,6 +248,15 @@ public class BitcasaParseJSON {
 				file.origin_device = reader.nextString();
 			else if (name.equals(TAG_ORIGIN_DEVICE_ID) && reader.peek() != JsonToken.NULL)
 				file.origin_device_id = reader.nextString();
+			else if (name.equals(TAG_ALBUM_ART) && reader.peek() != JsonToken.NULL) {
+				file.file = readItem(reader);
+			}
+			else if (name.equals(TAG_CTIME) && reader.peek() != JsonToken.NULL)
+				file.c_time = reader.nextLong();
+			else if (name.equals(TAG_BIRTH_TIME) && reader.peek() != JsonToken.NULL)
+				file.birth_time = reader.nextLong();
+			else if (name.equals(TAG_NMTIME) && reader.peek() != JsonToken.NULL)
+				file.n_mtime = reader.nextLong();
 			else
 				reader.skipValue();
 						

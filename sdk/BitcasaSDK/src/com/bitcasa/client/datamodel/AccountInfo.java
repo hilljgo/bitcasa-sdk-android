@@ -15,7 +15,6 @@ public class AccountInfo {
 	private String display_name;
 	private String referral_link;
 	private String id;
-	private String email;
 	private long storage_total;
 	private long storage_used;
 	private String storage_display;
@@ -38,14 +37,6 @@ public class AccountInfo {
 
 	public void setReferralLink(String referralLink) {
 		this.referral_link = referralLink;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
 	}
 
 	public String getId() {
@@ -78,6 +69,20 @@ public class AccountInfo {
 
 	public void setStorage_display(String storage_display) {
 		this.storage_display = storage_display;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();		
+		sb.append("display_name[").append(display_name)
+		.append("] referral_link[").append(referral_link)
+		.append("] id[").append(id)
+		.append("] storage_total[").append(storage_total)
+		.append("] storage_used[").append(storage_used)
+		.append("] storage_display[").append(storage_display);
+		sb.append("]*****");
+		
+		return sb.toString();
 	}
 	
 	
