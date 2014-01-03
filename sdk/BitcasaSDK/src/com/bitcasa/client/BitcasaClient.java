@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -442,7 +443,7 @@ public class BitcasaClient {
 		if (file.id != null && file.id.length() > 0)
 			method.append(BitcasaRESTConstants.FORESLASH).append(file.id);
 		
-		method.append(BitcasaRESTConstants.FORESLASH).append(file.name);
+		method.append(BitcasaRESTConstants.FORESLASH).append(URLEncoder.encode(file.name, BitcasaRESTConstants.UTF_8_ENCODING));
 		
 		StringBuilder params = new StringBuilder();    	
 		params.append(BitcasaRESTConstants.PARAM_ACCESS_TOKEN).append("=")
@@ -617,7 +618,7 @@ public class BitcasaClient {
 			httpparams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, Integer.valueOf(300000));
 			httpparams.setParameter(CoreConnectionPNames.SO_TIMEOUT, Integer.valueOf(300000));
 			HttpPost post = new HttpPost(urlRequest);
-			post.setHeader(BitcasaRESTConstants.HEADER_FILE, filename);
+			post.setHeader(BitcasaRESTConstants.HEADER_FILE, URLEncoder.encode(filename, BitcasaRESTConstants.UTF_8_ENCODING));
 			post.setParams(httpparams);
 	
 			CustomMultiPartEntityUpload entity = new CustomMultiPartEntityUpload(
@@ -863,7 +864,7 @@ public class BitcasaClient {
     		.append(BitcasaRESTConstants.OPERATION_COPY);
     		
     		body.append("&");
-    		body.append(BitcasaRESTConstants.BODY_TO).append("=").append(filename);
+    		body.append(BitcasaRESTConstants.BODY_TO).append("=").append(URLEncoder.encode(filename, BitcasaRESTConstants.UTF_8_ENCODING));
     		
     		break;
     	case MOVE:
@@ -872,7 +873,7 @@ public class BitcasaClient {
     		.append(BitcasaRESTConstants.OPERATION_MOVE);
     		
     		body.append("&");
-    		body.append(BitcasaRESTConstants.BODY_TO).append("=").append(filename);
+    		body.append(BitcasaRESTConstants.BODY_TO).append("=").append(URLEncoder.encode(filename, BitcasaRESTConstants.UTF_8_ENCODING));
     		break;
     	case RENAME:
     		params.append("&");
@@ -880,7 +881,7 @@ public class BitcasaClient {
     		.append(BitcasaRESTConstants.OPERATION_RENAME);
     		
     		body.append("&");
-    		body.append(BitcasaRESTConstants.BODY_FILENAME).append("=").append(filename);
+    		body.append(BitcasaRESTConstants.BODY_FILENAME).append("=").append(URLEncoder.encode(filename, BitcasaRESTConstants.UTF_8_ENCODING));
     		
     		break;
     		default:
