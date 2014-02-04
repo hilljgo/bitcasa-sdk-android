@@ -132,7 +132,7 @@ public class BitcasaClient {
 			}
 			
 			BitcasaParseJSON parser = new BitcasaParseJSON();
-			if (parser.readJsonStream(is)) {
+			if (responseCode == HttpsURLConnection.HTTP_OK && parser.readJsonStream(is)) {
 				accesstoken = parser.mAccessToken;
 				mAuthentication.setAccess_token(parser.mAccessToken);
 			}
